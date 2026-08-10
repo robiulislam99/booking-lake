@@ -19,7 +19,7 @@ import re
 
 import numpy as np
 
-from clients.embedding_client import generate_embedding
+from src.clients.embedding_client import generate_embedding
 
 _POINT_RE = re.compile(r"POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)")
 
