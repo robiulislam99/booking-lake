@@ -1,46 +1,94 @@
 Purpose
 -------
-A minimal service that ingests booking data, detects duplicates, indexes searchable representations, and exposes one-off operational scripts for maintenance.
+This repository implements a lightweight data pipeline and search/indexing platform for booking/ accommodation data. It supports ingestion, transformation, deduplication, vector embedding, indexing (search + vector stores), and a set of operational scripts for one-off and scheduled maintenance tasks.
 
-Layers (dependency order)
--------------------------
-- scripts: entry-point and operational orchestration (CLIs, scheduled jobs). Instantiate dependencies and call into `core`.
-- core: application business logic and domain rules (grouped by domain subfolders such as `core/ingestion/`, `core/dedup/`, `core/ranking/`, `core/similarity/`, `core/geo/`, and `core/sitemap/`). Declares abstract interfaces for external interactions — no concrete clients here.
-- mappers: translation layer between domain objects and external storage/index formats (marshal/unmarshal, schema mappings).
-- clients: concrete integrations with external systems (DynamoDB, Elasticsearch, Qdrant, S3, embedding services).
+High-level goals
+----------------
+- Make core business logic independent of transport and storage implementations.
+- Keep `scripts/` responsible for wiring concrete clients, orchestration, and CLI entry points.
+- Keep mappings and persistence concerns in `mappers/` and `clients/` respectively.
+- Support local developer workflows (docker-compose & local emulators) and production-ready deployment patterns.
 
-Hard rule (ideal) and current exception
--------------------------------------
-Dependencies must flow downward through interfaces: `core/` should not import concrete `clients/` implementations directly. Core must depend only on abstract contracts (or function parameters) that `clients/` implement. All wiring of concrete implementations belongs in `scripts/` (or a DI/bootstrap module).
+Repository layout (summary)
+--------------------------
+- `src/clients/` : concrete connectors to external systems (DynamoDB, Elasticsearch, Qdrant, S3-local, SQS, embeddings, Spark session, etc.).
+- `src/core/` : domain logic grouped by domain subpackages (`ingestion`, `dedup`, `ranking`, `similarity`, `sitemap`, `geo`). Core should express interfaces/abstract contracts and pure business rules.
+- `src/mappers/` : translation between domain objects and external storage/index shapes.
+- `src/scripts/` : CLI and operational programs that bootstrap clients, configure mappers, and run domain workflows (detect duplicates, export data, generate sitemaps, sync jobs).
+- `src/utils/` : support utilities (configuration, logging, retry, time helpers, custom exceptions).
+- `data/` : local data snapshots, export logs, and static JSON files used for mapping and tests.
+- `tests/` : unit tests grouped parallel to the code structure.
 
-Practical note: the current codebase contains one exception — `core/dedup/duplicate_detector.py` imports `generate_embedding` from `clients/embedding_client.py` and calls it directly. This violates the hard rule. Recommended quick fixes:
-- Preferred: extract an abstract embedding interface in `core/` (or accept an `embedding_fn` parameter), then have `scripts/` pass `clients.embedding_client.generate_embedding` at runtime.
-- Shorter change: modify `find_duplicates(...)` to accept an `embedding_fn` argument and remove the direct import from `core/`.
-
-
-Request flow example — duplicate detection (file-by-file)
--------------------------------------------------------
-1. `scripts/detect_duplicates.py` — CLI: parses args, constructs concrete clients and mappers, injects them, calls `DuplicateDetector`.
-2. `core/dedup/duplicate_detector.py` — business logic: `DuplicateDetector` uses abstract interfaces (e.g., storage/embedding interfaces) to fetch candidates and compute similarity; it emits duplicate decisions as domain objects.
-3. `mappers/dynamodb_document_mapper.py` — translates domain objects/rows to DynamoDB item shapes used by `clients/`.
-4. `clients/dynamodb_client.py` — concrete network/IO implementation that executes DynamoDB calls and returns raw data to `mappers/`.
-
-Implementation reality for duplicate detection (current run-time path):
-1. `scripts/detect_duplicates.py` — constructs concrete clients (e.g., `clients.spark_session`, `clients.embedding_client`) and calls `core.find_duplicates()`.
-2. `core/dedup/duplicate_detector.py` — currently imports `clients.embedding_client.generate_embedding` directly and uses it inside `text_similarity()`; it performs the comparison logic and returns matches.
-3. `mappers/dynamodb_document_mapper.py` — mapping helpers (when persisting or reading tracked domain objects).
-4. `clients/dynamodb_client.py` — concrete DynamoDB I/O used elsewhere by scripts.
-
-Where new code goes
--------------------
-- New business logic → put under `core/`, grouped by domain subfolder (e.g., `core/dedup/`, `core/ingestion/`, `core/similarity/`), export clear interfaces.
-- New external system → add a `clients/` implementation plus a matching `mappers/` entry to adapt its data model into existing domain objects.
-- One-off operational task → add to `scripts/` (small, focused CLIs or scheduled jobs). Keep `scripts/` responsible for wiring concrete implementations and bootstrap logic.
-
-Reviewer rules (quick checklist)
+Runtime components and services
 ------------------------------
-- Does `core/` import concrete `clients/`? If yes, reject and require interface extraction.
-- Is each client accompanied by a mapper when it persists or reads domain-shaped entities? Prefer small, testable mappers.
-- Are bootstrap/wiring steps in `scripts/` and not duplicated inside core logic?
+- DynamoDB (local or AWS): primary source/target for structured booking data and domain records. Mapped by `mappers/dynamodb_document_mapper.py` and accessed via `clients/dynamodb_client.py`.
+- Elasticsearch: text search index and some aggregations. Mapped via `mappers/es_document_mapper.py` and accessed via `clients/es_client.py`.
+- Qdrant: vector store for embeddings-based similarity and nearest-neighbour search. Accessed via `clients/qdrant_client.py` and mapped in `mappers/qdrant_document_mapper.py`.
+- Embedding service: external (or local) embedding generator used to convert text into vectors. Implemented in `clients/embedding_client.py`.
+- S3-local: local filesystem-backed S3 for storing artifacts, snapshots, and static blobs. `clients/s3_local_client.py` handles access.
+- Spark (optional): `clients/spark_session.py` provides a Spark session where heavy ETL or large-scale ingestion jobs run.
+- Localstack / test infra: used in CI/local dev to emulate AWS services.
 
-That's all — follow the downward-only dependency rule and group domain code inside `core/` subfolders.
+Data flow (typical pipelines)
+-----------------------------
+1. Ingestion: raw files (CSV/JSON/Iceberg snapshots) are read (scripts like `run_sync.py` / `sync_iceberg.py`) and normalized into domain objects in `core/ingestion/`.
+2. Mapping & persistence: domain objects are translated into storage shapes by `mappers/` and persisted via `clients/` (DynamoDB, S3).
+3. Embedding & similarity: text fields are passed through the embedding function (pluggable) and results are stored in Qdrant; `core/similarity/` contains the logic for computing candidate sets and scoring.
+4. Deduplication: `core/dedup/` orchestrates candidate generation, vector/text similarity, and dedup decisioning. It must depend only on abstract embedding and storage interfaces (see "Best practices").
+5. Indexing & ranking: `core/ranking/` prepares documents for ES and vector store indexing; `scripts/export_to_qdrant.py` and `scripts/export_to_s3_local.py` perform the writes.
+6. Operational outputs: sitemap generation, export logs, and other artifacts land in `data/` or S3-local buckets.
+
+Deployment & local development
+------------------------------
+- `docker-compose.yml` and `Dockerfile` configure a development stack (Elasticsearch, Qdrant, DynamoDB-local, Localstack, and optional Spark). Use `docker-compose up` for a local environment.
+- `pyproject.toml` + `requirements.txt` manage Python dependencies. `requirements-ci.txt` contains pinned deps for CI runs.
+- Local persisted volumes: `data/`, `s3_local/`, `es_data/`, `qdrant_data/` — help reproduce state between runs and are used by the local compose stack.
+
+Key design rules and recommendations
+-----------------------------------
+- Dependency direction: `scripts/` → `core/` → `mappers/` → `clients/` (wiring in `scripts/`, business rules in `core/`).
+- Pluggable embedding: never call a concrete `clients.embedding_client` directly from `core/`. Instead:
+	- Preferred: define an abstract embedding interface in `core/` (or accept an `embedding_fn` parameter) and have scripts pass the concrete function at runtime.
+	- Short-term: add an `embedding_fn` parameter to dedup/similarity entry points and remove direct imports from `core/`.
+- Small mappers: each client that transforms domain-shaped data should have a corresponding `mappers/` entry to keep conversion logic testable and contained.
+- Idempotent scripts: design `scripts/` to be idempotent and safe to retry for operational reliability.
+
+Testing and CI
+--------------
+- Unit tests live under `tests/unit` and exercise `core/`, `mappers/`, and `clients/` in isolation using fixtures and small local emulators.
+- Integration smoke tests should run against the `docker-compose` stack (Elasticsearch + Qdrant + DynamoDB-local). CI jobs should bring up these services and run a small end-to-end scenario.
+
+Observability and ops
+---------------------
+- Logging: use `src/utils/logging.py` for standardized logs across scripts and clients.
+- Monitoring: add simple metrics (counts of ingested records, index latencies, dedup decisions) and export them to the host metrics collector (Prometheus/Grafana) if available in production.
+- Backups & snapshots: maintain snapshots for ES and Qdrant; use `s3_local/` for local artifact storage and mirror to durable backup in production.
+
+Security and credentials
+------------------------
+- Prefer environment-based credentials for production (IAM, secrets manager). For local development, use `localstack` or environment variables pointing to local emulators.
+- Do not check secrets into the repository. Use `.env` (gitignored) for local overrides.
+
+Common operational scripts (what's already present)
+--------------------------------------------------
+- `scripts/detect_duplicates.py` — dedup detection runner.
+- `scripts/export_to_dynamodb.py`, `export_to_qdrant.py`, `export_to_s3_local.py` — export jobs.
+- `scripts/generate_nearby_sitemap.py`, `generate_property_sitemap.py`, `generate_root_sitemap_index.py` — sitemap generation.
+- `scripts/run_sync.py`, `scripts/sync_iceberg.py` — sync/ingest orchestrators.
+
+Next actionable improvements
+--------------------------
+1. Remove direct embedding imports from `core/` and make embedding pluggable (high priority for testability).
+2. Add lightweight integration tests that bring up `docker-compose` stack and validate end-to-end ingest → embed → index → query.
+3. Add README sections for local dev: `docker-compose up`, how to populate `s3_local/`, and how to run dedup flows.
+
+Contact / maintainers
+---------------------
+See repository README.md for maintainers and contribution guidelines.
+
+Appendix: Quick checklist for reviewers
+------------------------------------
+- `core/` must not import `clients/` directly.
+- Every client used for persisting domain shaped entities should have a `mappers/` counterpart.
+- Scripts should contain wiring only; business logic belongs in `core/`.
+

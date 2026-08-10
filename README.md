@@ -31,23 +31,20 @@ Local ETL and analytics pipeline, fully local and containerized.
 
 ## Project structure
 
-- `src/` — main application code for the ETL pipeline
-- `src/scripts/` — runnable entry points such as sync, export, and consumer scripts
-- `src/clients/` — wrappers for Spark, S3, DynamoDB, Elasticsearch, Qdrant, and SQS
-- `src/core/` — core processing, ranking, snapshot diff, similarity, and static-data logic
-- `src/mappers/` — mapping logic between source documents and target formats
-- `data/` — input feeds, local exports, and local service data directories
-- `data/booking/` — Booking.com data root used by the pipeline
-- `data/booking/accommodation_details/`
-- `data/booking/changelog/`
-- `data/booking/custom_static/`
-- `data/booking/reviews/`
-- `data/booking/reviews_scores/`
-- `data/booking/search/`
-- `data/booking/static/`
-- `notebooks/` — exploratory notebooks for data analysis
-- `tests/` — unit tests covering the pipeline components
-- `docker-compose.yml` and `Dockerfile` — container orchestration and image setup
+- `ARCHITECTURE.md` — repository architecture and guidance
+- `docker-compose.yml`, `Dockerfile` — local development stack and image build
+- `pyproject.toml`, `requirements.txt`, `requirements-ci.txt` — dependency manifests
+- `src/` — application source
+  - `src/clients/` — concrete system connectors (DynamoDB, Elasticsearch, Qdrant, S3-local, SQS, embeddings, Spark)
+  - `src/core/` — domain/business logic (ingestion, dedup, ranking, similarity, sitemap, geo)
+  - `src/mappers/` — translation between domain objects and storage/index shapes
+  - `src/scripts/` — CLI entry points and orchestration (sync, exports, sitemap, dedup)
+  - `src/utils/` — config, logging, retry, and helpers
+- `data/` — local datasets, export artifacts, and service-backed storage (`s3_local/`, `es_data/`, `qdrant_data/`, `dynamodb_data/`, `localstack_data/`, `warehouse/`, `sitemaps/`)
+- `notebooks/` — exploratory analysis notebooks
+- `tests/` — unit tests and fixtures (`tests/unit/`)
+- `sonarqube/` — SonarQube config and compose (optional)
+- `jars/`, `ivy_cache/` — JVM/spark support artifacts and caches
 
 ## First-time setup
 
