@@ -42,7 +42,7 @@ from pyspark.sql.types import (
 )
 
 from src.clients.spark_session import get_spark
-from src.core.file_locator import (
+from src.core.ingestion.feed_reader import (
     build_search_price_map,
     get_changelog_ids,
     iter_all_accommodation_details,

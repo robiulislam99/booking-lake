@@ -13,6 +13,7 @@ from pathlib import Path
 
 from src.clients.spark_session import get_spark
 from src.core.dedup.duplicate_detector import find_duplicates
+from src.utils.io import read_text
 
 DEFAULT_MOCK_PATH = "/app/warehouse/verbo_mock_data.json"
 FIELDS_NEEDED = [
@@ -36,7 +37,9 @@ def load_iceberg_rows():
 
 
 def load_partner_rows(path: str):
-    data = json.loads(Path(path).read_text())
+    # Construct Path via this module's Path (tests may patch it),
+    # then delegate reading to the shared helper which accepts path-like objects.
+    data = json.loads(read_text(Path(path)))
     # Tolerates both a flat list and a {"properties": [...]}-style wrapper,
     # same defensive pattern used elsewhere in this project for feed files.
     if isinstance(data, list):

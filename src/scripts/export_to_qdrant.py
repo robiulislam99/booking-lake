@@ -11,8 +11,9 @@ import json
 import sys
 from pathlib import Path
 
-from clients.qdrant_client import bulk_upsert
-from mappers.qdrant_document_mapper import to_qdrant_point
+from src.clients.qdrant_client import bulk_upsert
+from src.mappers.qdrant_document_mapper import to_qdrant_point
+from src.utils.io import read_text
 
 S3_LOCAL_ROOT = "/app/s3_local"
 BUCKET_NAME = "booking-lake-bucket"
@@ -33,7 +34,7 @@ def export_date(date_str: str):
     points = []
     skipped = 0
     for file_path in files:
-        document = json.loads(file_path.read_text())
+        document = json.loads(read_text(file_path))
         point = to_qdrant_point(document)
         if point is None:
             skipped += 1

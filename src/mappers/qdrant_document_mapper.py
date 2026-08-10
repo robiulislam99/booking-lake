@@ -13,7 +13,7 @@ import uuid
 
 from qdrant_client.models import PointStruct
 
-from clients.embedding_client import generate_embedding
+from src.clients.embedding_client import generate_embedding
 
 # Deterministic namespace -- same external_id always produces the same
 # UUID, so re-running an export overwrites the same point instead of

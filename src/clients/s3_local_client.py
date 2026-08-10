@@ -10,6 +10,8 @@ only construction of a different client instance.
 import os
 from pathlib import Path
 
+from src.utils.io import read_bytes, write_bytes
+
 S3_LOCAL_ROOT = os.environ.get("S3_LOCAL_ROOT", "/app/s3_local")
 
 
@@ -27,14 +29,14 @@ class LocalS3Client:
     def put_object(self, Bucket: str, Key: str, Body: bytes):
         path = self._object_path(Bucket, Key)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(Body)
+        write_bytes(path, Body)
         return {"ETag": f'"{len(Body)}"'}
 
     def get_object(self, Bucket: str, Key: str):
         path = self._object_path(Bucket, Key)
         if not path.exists():
             raise FileNotFoundError(f"No such key: {Bucket}/{Key}")
-        return {"Body": _BytesReader(path.read_bytes())}
+        return {"Body": _BytesReader(read_bytes(path))}
 
     def list_objects_v2(self, Bucket: str, Prefix: str = ""):
         bucket_root = self.root_dir / Bucket
