@@ -1,0 +1,1 @@
+"""Image-ranking stage modules."""
