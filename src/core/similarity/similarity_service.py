@@ -7,8 +7,8 @@ Elasticsearch's job, kept separate on purpose).
 
 from qdrant_client.models import FieldCondition, Filter, MatchValue
 
-from clients.qdrant_client import COLLECTION_NAME, get_qdrant_client
-from mappers.qdrant_document_mapper import external_id_to_point_id
+from src.clients.qdrant_client import COLLECTION_NAME, get_qdrant_client
+from src.mappers.qdrant_document_mapper import external_id_to_point_id
 
 
 def get_similar_properties(external_id: str, k: int = 5, published_only: bool = True) -> list[dict] | None:
