@@ -28,7 +28,7 @@ from datetime import datetime
 
 from slugify import slugify
 
-from src.core.static_data import (
+from src.core.sitemap.static_data import (
     get_accommodation_facility_map,
     get_accommodation_type_name_map,
     get_facility_type_name_map,
