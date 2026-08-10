@@ -15,8 +15,8 @@ Usage: python generate_nearby_sitemap.py [radius_km] [limit_per_property]
 import sys
 from pathlib import Path
 
-from core.nearby_service import get_all_published_ids, get_nearby_properties_for_sitemap
-from core.sitemap_generator import write_sitemap_files
+from src.core.geo.nearby_service import get_all_published_ids, get_nearby_properties_for_sitemap
+from src.core.sitemap.sitemap_generator import write_sitemap_files
 
 OUTPUT_DIR = Path("/app/data/sitemaps")
 

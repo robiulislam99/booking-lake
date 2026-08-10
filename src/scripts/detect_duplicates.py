@@ -11,8 +11,8 @@ import json
 import sys
 from pathlib import Path
 
-from clients.spark_session import get_spark
-from core.duplicate_detector import find_duplicates
+from src.clients.spark_session import get_spark
+from src.core.dedup.duplicate_detector import find_duplicates
 
 DEFAULT_MOCK_PATH = "/app/warehouse/verbo_mock_data.json"
 FIELDS_NEEDED = [

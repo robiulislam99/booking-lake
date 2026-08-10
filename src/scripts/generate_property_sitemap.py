@@ -8,8 +8,8 @@ Usage: python generate_property_sitemap.py
 
 from pathlib import Path
 
-from clients.spark_session import get_spark
-from core.sitemap_generator import write_sitemap_files
+from src.clients.spark_session import get_spark
+from src.core.sitemap.sitemap_generator import write_sitemap_files
 
 TABLE = "local.booking.rental_property"
 OUTPUT_DIR = Path("/app/data/sitemaps")

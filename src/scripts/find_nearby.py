@@ -12,7 +12,7 @@ Examples:
 
 import sys
 
-from core.nearby_service import get_nearby_properties_for_id
+from src.core.geo.nearby_service import get_nearby_properties_for_id
 
 
 def main():

@@ -47,7 +47,7 @@ from src.core.file_locator import (
     get_changelog_ids,
     iter_all_accommodation_details,
 )
-from src.core.processor import process_rental_property
+from src.core.ingestion.processor import process_rental_property
 
 logger = logging.getLogger("booking_lake.sync")
 logging.basicConfig(level=logging.INFO)

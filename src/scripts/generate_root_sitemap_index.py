@@ -13,7 +13,7 @@ Usage: python generate_root_sitemap_index.py
 import gzip
 from pathlib import Path
 
-from core.sitemap_generator import render_sitemap_index
+from src.core.sitemap.sitemap_generator import render_sitemap_index
 
 SITEMAPS_DIR = Path("/app/data/sitemaps")
 
