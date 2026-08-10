@@ -171,7 +171,7 @@ exported in step 4.
 
 ```bash
 docker compose exec spark python -c "
-from src.core.similarity_service import get_similar_properties
+from src.core.similarity.similarity_service import get_similar_properties
 results = get_similar_properties('BC-10178627', k=5)
 for r in results:
     print(f\"{r['score']:.4f}  {r['property_name']} ({r['city']})\")
@@ -188,7 +188,7 @@ Elasticsearch. `score` is cosine similarity (0–1, higher = more similar).
 ```bash
 docker compose exec spark python -c "
 from src.clients.spark_session import get_spark
-from src.core.snapshot_diff import diff_snapshots
+from src.core.ingestion.snapshot_diff import diff_snapshots
 spark = get_spark()
 snaps = spark.sql('SELECT snapshot_id FROM local.booking.rental_property.snapshots ORDER BY committed_at').collect()
 diff_snapshots(spark, snaps[-2]['snapshot_id'], snaps[-1]['snapshot_id'])
