@@ -10,7 +10,7 @@ on purpose -- this is pure geographic proximity, a different concern.
 
 import os
 
-from clients.es_client import get_es_client
+from src.clients.es_client import get_es_client
 
 INDEX_NAME = os.environ.get("ES_INDEX_NAME", "rental_properties")
 
