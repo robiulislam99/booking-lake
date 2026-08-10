@@ -16,7 +16,7 @@ best-to-worst by visual quality alone (not by description/room content).
 import json
 import re
 
-# from src.core.image_ranker import analyze_images
+# from src.core.ranking.image_ranker import analyze_images
 
 _POINT_RE = re.compile(r"POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)")
 
