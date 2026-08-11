@@ -7,12 +7,14 @@ boto3.client("s3", ...) later requires no logic changes elsewhere,
 only construction of a different client instance.
 """
 
-import os
 from pathlib import Path
 
-from src.utils.io import read_bytes, write_bytes
+try:
+    from ..utils.io import read_bytes, write_bytes
+except ImportError:  # pragma: no cover - compatibility for top-level imports
+    from src.utils.io import read_bytes, write_bytes
 
-S3_LOCAL_ROOT = os.environ.get("S3_LOCAL_ROOT", "/app/s3_local")
+from clients.config import S3_LOCAL_ROOT
 
 
 class LocalS3Client:

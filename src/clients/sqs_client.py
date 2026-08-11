@@ -6,24 +6,22 @@ AWS -- no AWS account or credentials needed, endpoint_url does all the work.
 import json
 import os
 
-import boto3
+from .boto_utils import get_boto3_client
+from .config import AWS_REGION, SQS_ENDPOINT_URL, SQS_QUEUE_NAME
 
-SQS_ENDPOINT_URL = os.environ.get("SQS_ENDPOINT_URL", "http://localstack:4566")
-QUEUE_NAME = os.environ.get("SQS_QUEUE_NAME", "booking-property-updates")
-AWS_REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
+QUEUE_NAME = SQS_QUEUE_NAME
+AWS_DEFAULT_REGION = AWS_REGION
 
 
 def _client():
-    kwargs = {"region_name": AWS_REGION}
-    endpoint_url = SQS_ENDPOINT_URL
+    endpoint_url = os.environ.get("SQS_ENDPOINT_URL", SQS_ENDPOINT_URL)
 
+    # The tests set this sentinel to force boto3 to use the standard AWS
+    # resolver path, which moto intercepts correctly.
     if endpoint_url and endpoint_url.startswith("http://sqs-mock-only"):
         endpoint_url = None
 
-    if endpoint_url:
-        kwargs["endpoint_url"] = endpoint_url
-
-    return boto3.client("sqs", **kwargs)
+    return get_boto3_client("sqs", endpoint_url)
 
 
 def ensure_queue() -> str:
