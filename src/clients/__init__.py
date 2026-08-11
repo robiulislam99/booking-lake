@@ -1,12 +1,9 @@
-from . import client as _client
-
-# Re-export the well-known client aliases from the registry module.
-dynamodb = _client.dynamodb
-es = _client.es
-embedding = _client.embedding
-qdrant = _client.qdrant
-s3_local = _client.s3_local
-spark = _client.spark
-sqs = _client.sqs
+from . import dynamodb_client as dynamodb
+from . import embedding_client as embedding
+from . import es_client as es
+from . import qdrant_client as qdrant
+from . import s3_local_client as s3_local
+from . import spark_session as spark
+from . import sqs_client as sqs
 
 __all__ = ["dynamodb", "es", "embedding", "qdrant", "s3_local", "spark", "sqs"]
