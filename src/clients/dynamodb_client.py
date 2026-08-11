@@ -9,33 +9,26 @@ a property's history over time rather than only its latest state,
 which is a common real-world DynamoDB access pattern worth practicing.
 """
 
-import os
-
 import boto3
 
-ENDPOINT_URL = os.environ.get("DYNAMODB_ENDPOINT_URL", "http://dynamodb-local:8000")
-TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME", "rental_properties")
-AWS_REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
+from .boto_utils import get_boto3_resource
+from .config import DYNAMODB_ENDPOINT_URL, DYNAMODB_TABLE_NAME
+
+TABLE_NAME = DYNAMODB_TABLE_NAME
 
 
 def _resource():
-    return boto3.resource(
-        "dynamodb",
-        endpoint_url=ENDPOINT_URL,
-        region_name=AWS_REGION,
-        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID", "test"),
-        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY", "test"),
-    )
+    return get_boto3_resource("dynamodb", DYNAMODB_ENDPOINT_URL)
 
 
 def ensure_table():
     dynamodb = _resource()
     existing = [t.name for t in dynamodb.tables.all()]
-    if TABLE_NAME in existing:
-        return dynamodb.Table(TABLE_NAME)
+    if DYNAMODB_TABLE_NAME in existing:
+        return dynamodb.Table(DYNAMODB_TABLE_NAME)
 
     table = dynamodb.create_table(
-        TableName=TABLE_NAME,
+        TableName=DYNAMODB_TABLE_NAME,
         KeySchema=[
             {"AttributeName": "property_id", "KeyType": "HASH"},
             {"AttributeName": "timestamp", "KeyType": "RANGE"},
@@ -51,7 +44,7 @@ def ensure_table():
 
 
 def get_table():
-    return _resource().Table(TABLE_NAME)
+    return _resource().Table(DYNAMODB_TABLE_NAME)
 
 
 def batch_put_items(items: list):
