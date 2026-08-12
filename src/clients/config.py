@@ -32,3 +32,9 @@ S3_LOCAL_ROOT = os.environ.get("S3_LOCAL_ROOT", "/app/s3_local")
 
 # --- Embedding model ---
 EMBEDDING_MODEL_NAME = os.environ.get("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
+
+# --- Ad Campaign feature ---
+AD_CAMPAIGN_CONFIG_DIR = os.environ.get("AD_CAMPAIGN_CONFIG_DIR", "/app/booking_data")
+AD_CAMPAIGN_PARTNER_NAME = os.environ.get("AD_CAMPAIGN_PARTNER_NAME", "BOOKING.COM")
+PRICE_PERCENTILES_FILENAME = "price_score_percentiles.json"
+TIER_REGION_MAP_FILENAME = "tier_region_continent_map.json"
