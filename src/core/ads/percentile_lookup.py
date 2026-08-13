@@ -2,7 +2,6 @@
 Property score lookup: the smallest value in price_score_percentiles.json
 that is >= the property's price, found via binary search (bisect) rather
 than a linear scan, per the spec.
-
 The percentile list is loaded from disk once and cached (lazy_singleton),
 not re-read per property.
 """

@@ -38,3 +38,9 @@ AD_CAMPAIGN_CONFIG_DIR = os.environ.get("AD_CAMPAIGN_CONFIG_DIR", "/app/booking_
 AD_CAMPAIGN_PARTNER_NAME = os.environ.get("AD_CAMPAIGN_PARTNER_NAME", "BOOKING.COM")
 PRICE_PERCENTILES_FILENAME = "price_score_percentiles.json"
 TIER_REGION_MAP_FILENAME = "tier_region_continent_map.json"
+
+
+AD_CAMPAIGN_FEED_BASE_URL = os.environ.get(
+    "AD_CAMPAIGN_FEED_BASE_URL",
+    "https://cdn.rentbyowner.com/v1/property-marketing-ads/property/property-all/example",
+)

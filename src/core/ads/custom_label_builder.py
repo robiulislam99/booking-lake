@@ -4,11 +4,6 @@ property row. Field ordering in the custom label is FIXED per the
 spec -- the consumer depends on positional order, so this must never
 be reordered without a corresponding consumer-side change.
 
-Two things resolved by inference from the spec's own examples (not
-explicitly stated in the field table):
-  - Position 1 is the literal "SINGLE_PRODUCT" (uppercase).
-  - Position 12 is the literal constant "property", not a data field.
-  - Position 5 renders as "segments N" (literal prefix), not just N.
 """
 
 from clients.config import AD_CAMPAIGN_PARTNER_NAME

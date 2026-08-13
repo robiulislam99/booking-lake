@@ -1,7 +1,6 @@
 """
-Renders Ad Campaign records (Page URL + Custom label) as CSV text,
-matching the required output format -- previously this feature wrote
-JSON; the consumer actually expects CSV with a header row.
+Renders Ad Campaign records (Page URL + Custom label) as CSV text.
+
 """
 
 import csv

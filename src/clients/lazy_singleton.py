@@ -1,10 +1,6 @@
 """
 Generic lazy-singleton helper -- construct something expensive exactly
-once per process, reuse it after. Currently only embedding_client.py
-does this (for the sentence-transformers model); es_client.py,
-qdrant_client.py, and dynamodb_client.py currently rebuild their
-client/resource on every call instead. Use this to make that
-consistent, if/when that inconsistency is worth fixing.
+once per process, reuse it after.
 """
 
 from collections.abc import Callable
