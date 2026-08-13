@@ -1,6 +1,5 @@
 """
 Maps a continent code to the filename suffix used in the CSV feed files.
-
 If a property has no continent mapping, use "unmapped".
 """
 
