@@ -1,6 +1,7 @@
 """
-Renders Ad Campaign records (Page URL + Custom label) as CSV text.
-
+Convert ad campaign records into CSV text.
+records: a list of dictionaries containing "Page URL" and
+"Custom label" keys.
 """
 
 import csv
