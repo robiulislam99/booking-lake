@@ -35,6 +35,7 @@ services:
       - QDRANT_COLLECTION_NAME=rental_properties
       - EMBEDDING_MODEL_NAME=all-MiniLM-L6-v2
       - SITE_BASE_URL=https://rentbyowner.com
+      - AD_CAMPAIGN_CONFIG_DIR=/app/booking_data
     ports:
       - "4040:4040"
       - "8888:8888"

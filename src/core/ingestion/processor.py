@@ -3,24 +3,6 @@ The single processing function:
 
     "one function that goes through all the fields, processes them,
     and returns everything at once at the end."
-
-`process_rental_property(raw, search_price_map)`:
-  - Input:  one raw `rental_property` dict (already loaded from disk by
-            file_locator.py), plus the search-feed price map
-  - Output: one plain dict, fully cleaned/typed, with keys matching
-            the Iceberg table's column names -- ready to hand to
-            spark.createDataFrame() for the MERGE INTO.
-  - Pure function: no database/Spark access, no I/O, no side effects.
-    Same input always produces the same output, so it's trivial to unit-test.
-
-Ported from the Django version. Changes forced by dropping Django:
-  - django.utils.text.slugify -> python-slugify's slugify (same behavior)
-  - django.contrib.gis.geos.Point -> resolve_latlon now returns an EWKT
-    string, e.g. 'SRID=4326;POINT (lon lat)', matching sync_iceberg.py's
-    ST_GeomFromEWKT() call that turns it into a real Iceberg GEOMETRY value.
-Also dropped the unused `from curses import raw` import (it did nothing --
-immediately shadowed by the `raw` parameter -- and isn't available outside
-Linux, so no reason to keep it here).
 """
 
 import re
